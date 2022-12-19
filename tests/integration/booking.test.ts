@@ -257,7 +257,7 @@ describe("POST /booking", () => {
       expect(response.status).toEqual(httpStatus.FORBIDDEN);
     });
 
-    it.only("should respond with status 409 when user already has a booking", async () => {
+    it("should respond with status 409 when user already has a booking", async () => {
       const user = await createUser();
       const token = await generateValidToken(user);
       const enrollment = await createEnrollmentWithAddress(user);

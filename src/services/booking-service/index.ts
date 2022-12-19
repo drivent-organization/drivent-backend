@@ -28,7 +28,7 @@ async function checkValidBooking(roomId: number, userId?: number) {
   }
 
   const userHasBooking = await bookingRepository.findByUserId(userId);
-  if (userHasBooking) {
+  if (userHasBooking && userId) {
     throw conflictError("Conflict");
   }
 }
