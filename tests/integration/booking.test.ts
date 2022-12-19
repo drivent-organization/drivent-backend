@@ -149,7 +149,6 @@ describe("POST /booking", () => {
       const hotel = await createHotel();
       const room = await createRoomWithHotelId(hotel.id);
 
-      const validBody = createValidBody();
       const response = await server.post("/booking").set("Authorization", `Bearer ${token}`).send({
         roomId: room.id,
       });

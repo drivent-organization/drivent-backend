@@ -65,6 +65,7 @@ export async function changeBooking(req: AuthenticatedRequest, res: Response) {
     if (error.name === "CannotBookingError") {
       return res.sendStatus(httpStatus.FORBIDDEN);
     }
+    console.log(error.message);
     return res.sendStatus(httpStatus.NOT_FOUND);
   }
 }
