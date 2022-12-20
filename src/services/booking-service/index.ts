@@ -50,7 +50,6 @@ async function bookingRoomById(userId: number, roomId: number) {
 
   return {
     bookingId: booking.id,
-    userId: booking.userId,
     Hotel: {
       id: booking.Room.Hotel.id,
       name: booking.Room.Hotel.name,
@@ -73,11 +72,25 @@ async function changeBookingRoomById(userId: number, roomId: number) {
     throw cannotBookingError();
   }
 
-  return bookingRepository.upsertBooking({
+  const newBooking = await bookingRepository.upsertBooking({
     id: booking.id,
     roomId,
-    userId,
   });
+
+  return {
+    bookingId: newBooking.id,
+    Hotel: {
+      id: newBooking.Room.Hotel.id,
+      name: newBooking.Room.Hotel.name,
+      image: newBooking.Room.Hotel.image,
+    },
+    Room: {
+      id: newBooking.Room.id,
+      name: newBooking.Room.name,
+      capacity: newBooking.Room.capacity,
+      bookings: newBooking.Room.Booking.length,
+    },
+  };
 }
 
 const bookingService = {
