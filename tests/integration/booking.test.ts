@@ -154,6 +154,20 @@ describe("POST /booking", () => {
       });
 
       expect(response.status).toEqual(httpStatus.OK);
+      expect(response.body).toEqual({
+        bookingId: expect.any(Number),
+        Hotel: {
+          id: expect.any(Number),
+          name: expect.any(String),
+          image: expect.any(String),
+        },
+        Room: {
+          id: expect.any(Number),
+          name: expect.any(String),
+          capacity: expect.any(Number),
+          bookings: expect.any(Number),
+        },
+      });
     });
     it("should respond with status 400 with a invalid body", async () => {
       const user = await createUser();
@@ -325,6 +339,20 @@ describe("PUT /booking", () => {
       });
 
       expect(response.status).toEqual(httpStatus.OK);
+      expect(response.body).toEqual({
+        bookingId: expect.any(Number),
+        Hotel: {
+          id: expect.any(Number),
+          name: expect.any(String),
+          image: expect.any(String),
+        },
+        Room: {
+          id: expect.any(Number),
+          name: expect.any(String),
+          capacity: expect.any(Number),
+          bookings: expect.any(Number),
+        },
+      });
     });
 
     it("should respond with status 400 with invalid bookingId", async () => {
