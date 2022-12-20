@@ -35,6 +35,9 @@ export async function bookingRoom(req: AuthenticatedRequest, res: Response) {
     if (error.name === "CannotBookingError") {
       return res.sendStatus(httpStatus.FORBIDDEN);
     }
+    if (error.name === "ConflictError") {
+      return res.sendStatus(httpStatus.CONFLICT);
+    }
     return res.sendStatus(httpStatus.NOT_FOUND);
   }
 }
@@ -44,13 +47,11 @@ export async function changeBooking(req: AuthenticatedRequest, res: Response) {
     const { userId } = req;
 
     const bookingId = Number(req.params.bookingId);
-
     if (!bookingId) {
       return res.sendStatus(httpStatus.BAD_REQUEST);
     }
 
     const { roomId } = req.body;
-
     if (!roomId) {
       return res.sendStatus(httpStatus.BAD_REQUEST);
     }
@@ -64,7 +65,7 @@ export async function changeBooking(req: AuthenticatedRequest, res: Response) {
     if (error.name === "CannotBookingError") {
       return res.sendStatus(httpStatus.FORBIDDEN);
     }
+    console.log(error.message);
     return res.sendStatus(httpStatus.NOT_FOUND);
   }
 }
-

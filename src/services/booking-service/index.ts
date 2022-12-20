@@ -1,4 +1,4 @@
-import { cannotBookingError, notFoundError } from "@/errors";
+import { cannotBookingError, conflictError, notFoundError } from "@/errors";
 import roomRepository from "@/repositories/room-repository";
 import bookingRepository from "@/repositories/booking-repository";
 import enrollmentRepository from "@/repositories/enrollment-repository";
@@ -16,7 +16,7 @@ async function checkEnrollmentTicket(userId: number) {
   }
 }
 
-async function checkValidBooking(roomId: number) {
+async function checkValidBooking(roomId: number, userId?: number) {
   const room = await roomRepository.findById(roomId);
   const bookings = await bookingRepository.findByRoomId(roomId);
 
@@ -25,6 +25,11 @@ async function checkValidBooking(roomId: number) {
   }
   if (room.capacity <= bookings.length) {
     throw cannotBookingError();
+  }
+
+  const userHasBooking = await bookingRepository.findByUserId(userId);
+  if (userHasBooking && userId) {
+    throw conflictError("Conflict");
   }
 }
 
@@ -39,7 +44,7 @@ async function getBooking(userId: number) {
 
 async function bookingRoomById(userId: number, roomId: number) {
   await checkEnrollmentTicket(userId);
-  await checkValidBooking(roomId);
+  await checkValidBooking(roomId, userId);
 
   return bookingRepository.create({ roomId, userId });
 }
@@ -55,7 +60,7 @@ async function changeBookingRoomById(userId: number, roomId: number) {
   return bookingRepository.upsertBooking({
     id: booking.id,
     roomId,
-    userId
+    userId,
   });
 }
 

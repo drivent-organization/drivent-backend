@@ -36,6 +36,12 @@ async function getHotelsWithRooms(userId: number, hotelId: number) {
   if (!hotel) {
     throw notFoundError();
   }
+
+  hotel.Rooms.forEach((room) => {
+    const vacancies = room.capacity - room.Booking.length;
+    room.vacancies = vacancies;
+  });
+
   return hotel;
 }
 
