@@ -46,7 +46,23 @@ async function bookingRoomById(userId: number, roomId: number) {
   await checkEnrollmentTicket(userId);
   await checkValidBooking(roomId, userId);
 
-  return bookingRepository.create({ roomId, userId });
+  const booking = await bookingRepository.create({ roomId, userId });
+
+  return {
+    bookingId: booking.id,
+    userId: booking.userId,
+    Hotel: {
+      id: booking.Room.Hotel.id,
+      name: booking.Room.Hotel.name,
+      image: booking.Room.Hotel.image,
+    },
+    Room: {
+      id: booking.Room.id,
+      name: booking.Room.name,
+      capacity: booking.Room.capacity,
+      bookings: booking.Room.Booking.length,
+    },
+  };
 }
 
 async function changeBookingRoomById(userId: number, roomId: number) {

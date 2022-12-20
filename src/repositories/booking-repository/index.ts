@@ -1,14 +1,28 @@
 import { prisma } from "@/config";
-import { Booking } from "@prisma/client";
+import { Booking, Hotel, Room } from "@prisma/client";
 
 type CreateParams = Omit<Booking, "id" | "createdAt" | "updatedAt">;
 type UpdateParams = Omit<Booking, "createdAt" | "updatedAt">;
+type BookingData = Booking & {
+  Room: Room & {
+    Booking: Booking[];
+    Hotel: Hotel;
+  };
+};
 
-async function create({ roomId, userId }: CreateParams): Promise<Booking> {
+async function create({ roomId, userId }: CreateParams): Promise<BookingData> {
   return prisma.booking.create({
     data: {
       roomId,
       userId,
+    },
+    include: {
+      Room: {
+        include: {
+          Booking: true,
+          Hotel: true,
+        },
+      },
     },
   });
 }
