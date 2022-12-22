@@ -17,7 +17,7 @@ import {
   createTicketTypeRemote,
   createHotel,
   createRoomWithHotelId,
-  createBooking
+  createBooking,
 } from "../factories";
 import { cleanDb, generateValidToken } from "../helpers";
 
@@ -99,7 +99,7 @@ describe("GET /booking", () => {
           capacity: expect.any(Number),
           hotelId: expect.any(Number),
           createdAt: expect.any(String),
-          updatedAt: expect.any(String)
+          updatedAt: expect.any(String),
         },
       });
     });
@@ -108,7 +108,7 @@ describe("GET /booking", () => {
 
 function createValidBody() {
   return {
-    "roomId": 1
+    roomId: 1,
   };
 }
 
@@ -149,12 +149,25 @@ describe("POST /booking", () => {
       const hotel = await createHotel();
       const room = await createRoomWithHotelId(hotel.id);
 
-      const validBody = createValidBody();
       const response = await server.post("/booking").set("Authorization", `Bearer ${token}`).send({
         roomId: room.id,
       });
 
       expect(response.status).toEqual(httpStatus.OK);
+      expect(response.body).toEqual({
+        bookingId: expect.any(Number),
+        Hotel: {
+          id: expect.any(Number),
+          name: expect.any(String),
+          image: expect.any(String),
+        },
+        Room: {
+          id: expect.any(Number),
+          name: expect.any(String),
+          capacity: expect.any(Number),
+          bookings: expect.any(Number),
+        },
+      });
     });
     it("should respond with status 400 with a invalid body", async () => {
       const user = await createUser();
@@ -186,9 +199,12 @@ describe("POST /booking", () => {
       const room = await createRoomWithHotelId(hotel.id);
 
       const validBody = createValidBody();
-      const response = await server.post("/booking").set("Authorization", `Bearer ${token}`).send({
-        roomId: room.id + 1,
-      });
+      const response = await server
+        .post("/booking")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          roomId: room.id + 1,
+        });
 
       expect(response.status).toEqual(httpStatus.NOT_FOUND);
     });
@@ -253,6 +269,25 @@ describe("POST /booking", () => {
 
       expect(response.status).toEqual(httpStatus.FORBIDDEN);
     });
+
+    it("should respond with status 409 when user already has a booking", async () => {
+      const user = await createUser();
+      const token = await generateValidToken(user);
+      const enrollment = await createEnrollmentWithAddress(user);
+      const ticketType = await createTicketTypeWithHotel();
+      const ticket = await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
+      const payment = await createPayment(ticket.id, ticketType.price);
+      const hotel = await createHotel();
+      const room = await createRoomWithHotelId(hotel.id);
+      await createBooking({
+        userId: user.id,
+        roomId: room.id,
+      });
+
+      const response = await server.post("/booking").set("Authorization", `Bearer ${token}`).send({ roomId: room.id });
+
+      expect(response.status).toBe(httpStatus.CONFLICT);
+    });
   });
 });
 
@@ -304,6 +339,20 @@ describe("PUT /booking", () => {
       });
 
       expect(response.status).toEqual(httpStatus.OK);
+      expect(response.body).toEqual({
+        bookingId: expect.any(Number),
+        Hotel: {
+          id: expect.any(Number),
+          name: expect.any(String),
+          image: expect.any(String),
+        },
+        Room: {
+          id: expect.any(Number),
+          name: expect.any(String),
+          capacity: expect.any(Number),
+          bookings: expect.any(Number),
+        },
+      });
     });
 
     it("should respond with status 400 with invalid bookingId", async () => {
@@ -367,9 +416,12 @@ describe("PUT /booking", () => {
         userId: user.id,
       });
       const validBody = createValidBody();
-      const response = await server.put(`/booking/${booking.id}`).set("Authorization", `Bearer ${token}`).send({
-        roomId: room.id + 1,
-      });
+      const response = await server
+        .put(`/booking/${booking.id}`)
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          roomId: room.id + 1,
+        });
 
       expect(response.status).toEqual(httpStatus.NOT_FOUND);
     });
@@ -423,9 +475,12 @@ describe("PUT /booking", () => {
       });
 
       const validBody = createValidBody();
-      const response = await server.put(`/booking/${otherUserBooking.id}`).set("Authorization", `Bearer ${token}`).send({
-        roomId: room.id,
-      });
+      const response = await server
+        .put(`/booking/${otherUserBooking.id}`)
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          roomId: room.id,
+        });
 
       expect(response.status).toEqual(httpStatus.FORBIDDEN);
     });
