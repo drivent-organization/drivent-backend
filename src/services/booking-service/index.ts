@@ -79,6 +79,7 @@ async function changeBookingRoomById(userId: number, roomId: number) {
 
   return {
     bookingId: newBooking.id,
+    userId: newBooking.userId,
     Hotel: {
       id: newBooking.Room.Hotel.id,
       name: newBooking.Room.Hotel.name,

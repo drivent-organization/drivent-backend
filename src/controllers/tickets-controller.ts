@@ -40,7 +40,9 @@ export async function createTicket(req: AuthenticatedRequest, res: Response) {
 
     return res.status(httpStatus.CREATED).send(ticketTypes);
   } catch (error) {
+    if (error.name === "ConflictError") {
+      return res.sendStatus(httpStatus.CONFLICT);
+    }
     return res.sendStatus(httpStatus.NOT_FOUND);
   }
 }
-
