@@ -28,10 +28,7 @@ export async function getPaymentByTicketId(req: AuthenticatedRequest, res: Respo
 export async function paymentProcess(req: AuthenticatedRequest, res: Response) {
   try {
     const { userId } = req;
-    const {
-      ticketId,
-      cardData,
-    } = req.body;
+    const { ticketId, cardData } = req.body;
 
     if (!ticketId || !cardData) {
       return res.sendStatus(httpStatus.BAD_REQUEST);
@@ -46,6 +43,9 @@ export async function paymentProcess(req: AuthenticatedRequest, res: Response) {
   } catch (error) {
     if (error.name === "UnauthorizedError") {
       return res.sendStatus(httpStatus.UNAUTHORIZED);
+    }
+    if (error.name === "ConflictError") {
+      return res.sendStatus(httpStatus.CONFLICT);
     }
     return res.sendStatus(httpStatus.NOT_FOUND);
   }
