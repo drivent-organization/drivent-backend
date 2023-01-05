@@ -3,6 +3,7 @@ import activitiesRepository from "@/repositories/activities-repository";
 import enrollmentRepository from "@/repositories/enrollment-repository";
 import ticketRepository from "@/repositories/ticket-repository";
 import { TicketStatus } from "@prisma/client";
+import { ActivityData } from "@/protocols";
 
 async function checkPayment(userId: number) {
   const enrollment = await enrollmentRepository.findWithAddressByUserId(userId);
@@ -30,10 +31,32 @@ async function getActivitiesDates(userId: number) {
 }
 
 async function getActivitiesByDate(dateId: number) {
-  const activities = await activitiesRepository.findActivitiesByDate(dateId);
-  if (activities.length === 0) {
+  const activitiesData = await activitiesRepository.findActivitiesByDate(dateId);
+  if (activitiesData.length === 0) {
     throw notFoundError();
   }
+
+  const activities = getActivitiesParams(activitiesData);
+
+  return activities;
+}
+
+function getActivitiesParams(activitiesData: ActivityData[]) {
+  const activities = activitiesData.map((activity) => {
+    const vacancies = activity.capacity - activity.Subscription.length;
+    const activityParams = {
+      id: activity.id,
+      activityName: activity.name,
+      capacity: activity.capacity,
+      vacancies,
+      dateId: activity.weekdayId,
+      placeId: activity.placeId,
+      placeName: activity.Place.name,
+      startsAt: activity.startsAt,
+      endsAt: activity.endsAt,
+    };
+    return activityParams;
+  });
   return activities;
 }
 

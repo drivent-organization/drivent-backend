@@ -1,10 +1,6 @@
 import { prisma } from "@/config";
-import { Weekday, Activity, Place, Subscription } from "@prisma/client";
-
-type ActivityData = Activity & {
-  Place: Place;
-  Subscription: Subscription[];
-};
+import { Weekday } from "@prisma/client";
+import { ActivityData } from "@/protocols";
 
 async function findActivitiesDates(): Promise<Weekday[]> {
   return prisma.weekday.findMany({});
