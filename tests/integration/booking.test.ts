@@ -1,20 +1,15 @@
 import app, { init } from "@/app";
-import { prisma } from "@/config";
 import faker from "@faker-js/faker";
 import { TicketStatus } from "@prisma/client";
-import e from "express";
 import httpStatus from "http-status";
 import * as jwt from "jsonwebtoken";
 import supertest from "supertest";
 import {
   createEnrollmentWithAddress,
   createUser,
-  createTicketType,
   createTicket,
   createPayment,
-  generateCreditCardData,
   createTicketTypeWithHotel,
-  createTicketTypeRemote,
   createHotel,
   createRoomWithHotelId,
   createBooking,
@@ -92,14 +87,17 @@ describe("GET /booking", () => {
 
       expect(response.status).toEqual(httpStatus.OK);
       expect(response.body).toEqual({
-        id: booking.id,
+        bookingId: expect.any(Number),
+        Hotel: {
+          id: expect.any(Number),
+          name: expect.any(String),
+          image: expect.any(String),
+        },
         Room: {
           id: expect.any(Number),
           name: expect.any(String),
           capacity: expect.any(Number),
-          hotelId: expect.any(Number),
-          createdAt: expect.any(String),
-          updatedAt: expect.any(String),
+          bookings: expect.any(Number),
         },
       });
     });
