@@ -39,7 +39,20 @@ async function getBooking(userId: number) {
     throw notFoundError();
   }
 
-  return booking;
+  return {
+    bookingId: booking.id,
+    Hotel: {
+      id: booking.Room.Hotel.id,
+      name: booking.Room.Hotel.name,
+      image: booking.Room.Hotel.image,
+    },
+    Room: {
+      id: booking.Room.id,
+      name: booking.Room.name,
+      capacity: booking.Room.capacity,
+      bookings: booking.Room.Booking.length,
+    },
+  };
 }
 
 async function bookingRoomById(userId: number, roomId: number) {
@@ -79,6 +92,7 @@ async function changeBookingRoomById(userId: number, roomId: number) {
 
   return {
     bookingId: newBooking.id,
+    userId: newBooking.userId,
     Hotel: {
       id: newBooking.Room.Hotel.id,
       name: newBooking.Room.Hotel.name,
