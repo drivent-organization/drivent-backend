@@ -5,9 +5,16 @@ import httpStatus from "http-status";
 
 export async function listActivitiesDates(req: AuthenticatedRequest, res: Response) {
   try {
-    const dates = await activitiesService.getActivitiesDates();
+    const { userId } = req;
+    const dates = await activitiesService.getActivitiesDates(userId);
     return res.status(httpStatus.OK).send(dates);
   } catch (error) {
+    if (error.name === "UnauthorizedError") {
+      return res.sendStatus(httpStatus.UNAUTHORIZED);
+    }
+    if (error.name === "CannotSelectActivitiesError") {
+      return res.sendStatus(httpStatus.BAD_REQUEST);
+    }
     return res.sendStatus(httpStatus.NOT_FOUND);
   }
 }
