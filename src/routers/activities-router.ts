@@ -4,6 +4,8 @@ import { listActivitiesDates } from "@/controllers";
 
 const activitiesRouter = Router();
 
-activitiesRouter.all("/*", authenticateToken).get("", listActivitiesDates).get("/:dateId");
+activitiesRouter.all("/*", authenticateToken)
+  .get("", listActivitiesDates)
+  .get("/:dateId");
 
 export { activitiesRouter };
