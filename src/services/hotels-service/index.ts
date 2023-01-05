@@ -13,11 +13,11 @@ async function listHotels(userId: number) {
   //Tem ticket pago isOnline false e includesHotel true
   const ticket = await ticketRepository.findTicketByEnrollmentId(enrollment.id);
 
-  if (!ticket || ticket.status === "RESERVED") {
+  if (!ticket || ticket.status === "RESERVED" || ticket.TicketType.isRemote) {
     throw cannotListHotelsError();
   }
 
-  if (ticket.TicketType.isRemote || !ticket.TicketType.includesHotel) {
+  if (!ticket.TicketType.includesHotel) {
     throw unauthorizedError();
   }
 }

@@ -4,13 +4,20 @@ import { User } from "@prisma/client";
 import bcrypt from "bcrypt";
 import eventsService from "../events-service";
 import { duplicatedEmailError } from "./errors";
+import { v4 as uuid } from "uuid";
 
 export async function createUser({ email, password }: CreateUserParams): Promise<User> {
   await canEnrollOrFail();
 
   await validateUniqueEmailOrFail(email);
 
-  const hashedPassword = await bcrypt.hash(password, 12);
+  let hashedPassword;
+  if (password) {
+    hashedPassword = await bcrypt.hash(password, 12);
+  } else {
+    hashedPassword = uuid();
+  }
+
   return userRepository.create({
     email,
     password: hashedPassword,
