@@ -2,16 +2,22 @@ import { cannotBookingError, conflictError, notFoundError } from "@/errors";
 import roomRepository from "@/repositories/room-repository";
 import bookingRepository from "@/repositories/booking-repository";
 import enrollmentRepository from "@/repositories/enrollment-repository";
-import tikectRepository from "@/repositories/ticket-repository";
+import ticketRepository from "@/repositories/ticket-repository";
+import { TicketStatus } from "@prisma/client";
 
 async function checkEnrollmentTicket(userId: number) {
   const enrollment = await enrollmentRepository.findWithAddressByUserId(userId);
   if (!enrollment) {
     throw cannotBookingError();
   }
-  const ticket = await tikectRepository.findTicketByEnrollmentId(enrollment.id);
+  const ticket = await ticketRepository.findTicketByEnrollmentId(enrollment.id);
 
-  if (!ticket || ticket.status === "RESERVED" || ticket.TicketType.isRemote || !ticket.TicketType.includesHotel) {
+  if (
+    !ticket ||
+    ticket.status === TicketStatus.RESERVED ||
+    ticket.TicketType.isRemote ||
+    !ticket.TicketType.includesHotel
+  ) {
     throw cannotBookingError();
   }
 }
@@ -39,7 +45,20 @@ async function getBooking(userId: number) {
     throw notFoundError();
   }
 
-  return booking;
+  return {
+    bookingId: booking.id,
+    Hotel: {
+      id: booking.Room.Hotel.id,
+      name: booking.Room.Hotel.name,
+      image: booking.Room.Hotel.image,
+    },
+    Room: {
+      id: booking.Room.id,
+      name: booking.Room.name,
+      capacity: booking.Room.capacity,
+      bookings: booking.Room.Booking.length,
+    },
+  };
 }
 
 async function bookingRoomById(userId: number, roomId: number) {

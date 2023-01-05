@@ -72,8 +72,8 @@ describe("POST /activities/process", () => {
     
       const weekday = await createWeekday();
       const place = await createPlace();
-      const activity = await createActivity(weekday.id, place.id);
-      await createSubscription(user.id, activity.id);
+      const activity = await createActivity({ dateId: weekday.id, placeId: place.id });
+      await createSubscription({ userId: user.id, activityId: activity.id });
 
       const response = await server.get("/activities/process").set("Authorization", `Bearer ${token}`).send({});
 
