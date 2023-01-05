@@ -7,7 +7,7 @@ type CreateBookingParams = {
   userId: number,
 }
 
-export function createBooking({ roomId, userId }: CreateBookingParams) {
+export async function createBooking({ roomId, userId }: CreateBookingParams) {
   return prisma.booking.create({
     data: {
       userId,
