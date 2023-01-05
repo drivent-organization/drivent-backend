@@ -41,13 +41,18 @@ async function findByRoomId(roomId: number): Promise<BookingWithRoom[]> {
   });
 }
 
-async function findByUserId(userId: number): Promise<BookingWithRoom> {
+async function findByUserId(userId: number): Promise<BookingData> {
   return prisma.booking.findFirst({
     where: {
       userId,
     },
     include: {
-      Room: true,
+      Room: {
+        include: {
+          Booking: true,
+          Hotel: true,
+        },
+      },
     },
   });
 }
