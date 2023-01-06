@@ -5,13 +5,13 @@ import { notFoundError, unauthorizedError } from "@/errors";
 
 async function enterActivities(userId: number) {
   const enrollment = await enrollmentRepository.findWithAddressByUserId(userId);
-  console.log(enrollment);
-  console.log(!enrollment);
+  
   if (!enrollment) {
-    throw notFoundError();
+    throw unauthorizedError();
   }
 
   const ticket = await ticketRepository.findTicketByEnrollmentId(enrollment.id);
+  
   if (!ticket || ticket.status === "RESERVED") {
     throw unauthorizedError();
   }

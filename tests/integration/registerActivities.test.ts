@@ -20,7 +20,7 @@ import {
   createWeekday,
   createPlace,
   createActivity,
-  createSubscription
+  createSubscription,
 } from "../factories";
 import { cleanDb, generateValidToken } from "../helpers";
 
@@ -59,7 +59,16 @@ describe("POST /activities/process", () => {
   });
 
   describe("when token is valid", () => {
-    it("should respond with status 400 if there is no activitieId ", async () => {
+    it("should respond with status 400 when user has not a enrollment ", async () => {
+      const user = await createUser();
+      const token = await generateValidToken(user);
+
+      const response = await server.post("/activities/process").set("Authorization", `Bearer ${token}`).send({ activityId: 0 });
+
+      expect(response.status).toEqual(httpStatus.BAD_REQUEST);
+    });
+
+    it("should respond with status 400 if there is no activityId ", async () => {
       const user = await createUser();
       const token = await generateValidToken(user);
       const enrollment = await createEnrollmentWithAddress(user);
@@ -69,15 +78,27 @@ describe("POST /activities/process", () => {
 
       const hotel = await createHotel();
       const room = await createRoomWithHotelId(hotel.id);
-    
+
       const weekday = await createWeekday();
       const place = await createPlace();
       const activity = await createActivity({ dateId: weekday.id, placeId: place.id });
       await createSubscription({ userId: user.id, activityId: activity.id });
 
-      const response = await server.get("/activities/process").set("Authorization", `Bearer ${token}`).send({});
+      const response = await server.post("/activities/process").set("Authorization", `Bearer ${token}`).send({});
 
       expect(response.status).toEqual(httpStatus.BAD_REQUEST);
+    });
+
+    it("should respond with status 401 when user has ticket not paid yet", async () => {
+      const user = await createUser();
+      const token = await generateValidToken(user);
+      const enrollment = await createEnrollmentWithAddress(user);
+      const ticketType = await createTicketTypeWithHotel();
+      const ticket = await createTicket(enrollment.id, ticketType.id, TicketStatus.RESERVED);
+
+      const response = await server.post("/activities/process").set("Authorization", `Bearer ${token}`).send({ activityId: 2 });
+
+      expect(response.status).toEqual(httpStatus.UNAUTHORIZED);
     });
   });
 });
