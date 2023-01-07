@@ -171,6 +171,8 @@ model Activity {
   Subscription Subscription[]
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
+
+  @@index([weekdayId])
 }
 
 model Subscription {
