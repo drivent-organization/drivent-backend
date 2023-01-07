@@ -11,12 +11,11 @@ async function checkPayment(userId: number) {
     throw unauthorizedError();
   }
   const ticket = await ticketRepository.findTicketByEnrollmentId(enrollment.id);
-
   if (!ticket || ticket.status === TicketStatus.RESERVED) {
     throw unauthorizedError();
   }
 
-  if (ticket.TicketType.isRemote || !ticket.TicketType.includesHotel) {
+  if (ticket.TicketType.isRemote) {
     throw cannotSelectActivitiesError();
   }
 }
