@@ -1,5 +1,5 @@
 import { prisma } from "@/config";
-import { Weekday } from "@prisma/client";
+import { Place, Weekday } from "@prisma/client";
 import { ActivityData } from "@/protocols";
 
 async function findActivitiesDates(): Promise<Weekday[]> {
@@ -18,9 +18,14 @@ async function findActivitiesByDate(dateId: number): Promise<ActivityData[]> {
   });
 }
 
+async function findPlaces(): Promise<Place[]> {
+  return prisma.place.findMany({});
+}
+
 const activitiesRepository = {
   findActivitiesDates,
   findActivitiesByDate,
+  findPlaces,
 };
 
 export default activitiesRepository;

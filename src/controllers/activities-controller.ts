@@ -4,8 +4,9 @@ import { Response } from "express";
 import httpStatus from "http-status";
 
 export async function listActivitiesDates(req: AuthenticatedRequest, res: Response) {
+  const { userId } = req;
+
   try {
-    const { userId } = req;
     const dates = await activitiesService.getActivitiesDates(userId);
     return res.status(httpStatus.OK).send(dates);
   } catch (error) {
@@ -24,9 +25,19 @@ export async function listActivitiesByDate(req: AuthenticatedRequest, res: Respo
   if (!dateId) {
     return res.sendStatus(httpStatus.BAD_REQUEST);
   }
+
   try {
     const activities = await activitiesService.getActivitiesByDate(dateId);
     return res.status(httpStatus.OK).send(activities);
+  } catch (error) {
+    return res.sendStatus(httpStatus.NOT_FOUND);
+  }
+}
+
+export async function listPlaces(req: AuthenticatedRequest, res: Response) {
+  try {
+    const places = await activitiesService.getPlaces();
+    return res.status(httpStatus.OK).send(places);
   } catch (error) {
     return res.sendStatus(httpStatus.NOT_FOUND);
   }

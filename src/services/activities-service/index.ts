@@ -60,9 +60,19 @@ function getActivitiesParams(activitiesData: ActivityData[]) {
   return activities;
 }
 
+async function getPlaces() {
+  const places = await activitiesRepository.findPlaces();
+  if (places.length === 0) {
+    throw notFoundError();
+  }
+
+  return places;
+}
+
 const activitiesService = {
   getActivitiesDates,
   getActivitiesByDate,
+  getPlaces,
 };
 
 export default activitiesService;
