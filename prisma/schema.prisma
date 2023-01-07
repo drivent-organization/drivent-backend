@@ -146,6 +146,8 @@ model Weekday {
   Activity  Activity[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+
+  @@index([id])
 }
 
 model Place {
