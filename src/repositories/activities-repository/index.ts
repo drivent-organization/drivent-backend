@@ -8,6 +8,9 @@ async function findActivitiesDates(): Promise<Weekday[]> {
 
 async function findActivitiesByDate(dateId: number): Promise<ActivityData[]> {
   return prisma.activity.findMany({
+    orderBy: {
+      startsAt: "asc",
+    },
     where: {
       weekdayId: dateId,
     },
