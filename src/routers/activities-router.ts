@@ -5,7 +5,7 @@ import { listActivitiesDates, listActivitiesByDate, registerActivities } from "@
 const activitiesRouter = Router();
 
 activitiesRouter
-  .all("/*", authenticateToken)
+  // .all("/*", authenticateToken)
   .get("", listActivitiesDates)
   .get("/:dateId", listActivitiesByDate)
   .post("/process", registerActivities);
