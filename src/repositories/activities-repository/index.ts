@@ -21,40 +21,41 @@ async function findActivitiesByDate(dateId: number): Promise<ActivityData[]> {
   });
 }
 
-async function getActivitie(activitieId: number) {
+async function getActivity(activityId: number) {
   return prisma.activity.findFirst({
     where: {
-      id: activitieId
-    }
+      id: activityId,
+    },
   });
 }
 
-async function createSubscription(userId: number, activitieId: number) {
+async function createSubscription(userId: number, activityId: number) {
   return prisma.subscription.create({
     data: {
       userId,
-      activityId: activitieId
-    }
+      activityId,
+    },
   });
 }
 
-async function getSubscriptionsQTD(activitieId: number) {
+async function getSubscriptionsQTD(activityId: number) {
   return prisma.subscription.findMany({
     where: {
-      activityId: activitieId
-    }
+      activityId,
+    },
   });
 }
 
 async function getUserActivitiesByUserId(userId: number) {
   return prisma.subscription.findMany({
     where: {
-      userId
-    }, include: {
-      Activity: true
-    }
+      userId,
+    },
+    include: {
+      Activity: true,
+    },
   });
-}  
+}
 
 async function findPlaces(): Promise<Place[]> {
   return prisma.place.findMany({});
@@ -63,11 +64,11 @@ async function findPlaces(): Promise<Place[]> {
 const activitiesRepository = {
   findActivitiesDates,
   findActivitiesByDate,
-  getActivitie,
+  getActivity,
   createSubscription,
   getSubscriptionsQTD,
   getUserActivitiesByUserId,
-  findPlaces
+  findPlaces,
 };
 
 export default activitiesRepository;
