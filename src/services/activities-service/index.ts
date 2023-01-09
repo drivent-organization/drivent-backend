@@ -81,7 +81,7 @@ async function subscribeInActivity(userId: number, activitieId: number) {
     ({ endsAt }) => dayjs(endsAt).isAfter(dayjs(activitie.startsAt)) || 
     dayjs(endsAt).isSame(dayjs(activitie.startsAt)));
  
-  if (!endTimeActivitie) {
+  if (endTimeActivitie) {
     throw unauthorizedError();
   }
 
