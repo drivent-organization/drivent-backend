@@ -44,17 +44,7 @@ export async function subscribeToActivity(req: AuthenticatedRequest, res: Respon
     }
 
     const subscribedActivity = await activitiesService.subscribeInActivity(userId, activityId);
-    console.log(subscribedActivity);
-    const atividadeCadastrada = [{
-      id: subscribedActivity.id,
-      name: subscribedActivity.name,
-      capacity: subscribedActivity.capacity,
-      weekdayId: subscribedActivity.weekdayId,
-      placeId: subscribedActivity.placeId,
-      startsAt: subscribedActivity.startsAt,
-      endsAt: subscribedActivity.endsAt
-    }];
-    return res.status(httpStatus.OK).send(atividadeCadastrada);
+    return res.status(httpStatus.OK).send(subscribedActivity);
   } catch (error) {
     if (error.name === "NotFoundError") {
       return res.sendStatus(httpStatus.NOT_FOUND);

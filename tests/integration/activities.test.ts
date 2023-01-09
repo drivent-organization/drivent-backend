@@ -347,7 +347,7 @@ describe("POST /activities/process", () => {
       expect(response.status).toBe(httpStatus.UNAUTHORIZED);
     });
 
-    it("should respond with status 401 when there are conflict in activity times", async () => {
+    it("should respond with status 401 when there are conflict with different activitie time", async () => {
       const user = await createUser();
       const token = await generateValidToken(user);
       const enrollment = await createEnrollmentWithAddress(user);
@@ -357,6 +357,8 @@ describe("POST /activities/process", () => {
       await createRoomWithHotelId(hotel.id);
       const weekday = await createWeekday();
       const place = await createPlace();
+
+      const beforeCount = await prisma.subscription.count();
 
       const activity = await createActivity({ dateId: weekday.id, placeId: place.id });
       await createSubscription({ userId: user.id, activityId: activity.id });
@@ -369,13 +371,14 @@ describe("POST /activities/process", () => {
         .set("Authorization", `Bearer ${token}`)
         .send({ activityId: conflictantActivity.id });
 
-      const beforeCount = await prisma.subscription.count();
+      const afterCount = await prisma.subscription.count();
 
       expect(response.status).toBe(httpStatus.UNAUTHORIZED);
-      expect(beforeCount).toEqual(1);
+      expect(beforeCount).toEqual(0);
+      expect(afterCount).toEqual(1);
     });
 
-    it("should respond with status 200 and insert a new subscription in the database", async () => {
+    it("should respond with status 200 and existing activity data", async () => {
       const user = await createUser();
       const token = await generateValidToken(user);
       const enrollment = await createEnrollmentWithAddress(user);
@@ -385,12 +388,7 @@ describe("POST /activities/process", () => {
       const weekday = await createWeekday();
       const place = await createPlace();
       const activity = await createActivity({ dateId: weekday.id, placeId: place.id });
-
-      const beforeCount = await prisma.subscription.count();
-
       await createSubscription({ userId: user.id, activityId: activity.id });
-
-      const afterCount = await prisma.subscription.count();
 
       const response = await server
         .post("/activities/process")
@@ -407,8 +405,6 @@ describe("POST /activities/process", () => {
         startsAt: activity.startsAt,
         endsAt: activity.endsAt
       }]);
-      expect(beforeCount).toEqual(0);
-      expect(afterCount).toEqual(1);
     });
   });
 });

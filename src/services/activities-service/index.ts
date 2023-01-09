@@ -76,11 +76,10 @@ async function subscribeInActivity(userId: number, activitieId: number) {
 
   const getUserActivities = await activitiesRepository.getUserActivitiesByUserId(userId);
   const allActivities = getUserActivities.map((item) => item.Activity);
-  // const endTimeActivitie = allActivities.find(
-  //   ({ endsAt }) => Date.parse(endsAt.toISOString()) > Date.parse(activitie.startsAt.toISOString()),
-  // );
+
   const endTimeActivitie = allActivities.find(
-    ({ endsAt }) => dayjs(endsAt).isAfter(dayjs(activitie.startsAt)) || dayjs(endsAt).isSame(dayjs(activitie.startsAt)));
+    ({ endsAt }) => dayjs(endsAt).isAfter(dayjs(activitie.startsAt)) || 
+    dayjs(endsAt).isSame(dayjs(activitie.startsAt)));
  
   if (!endTimeActivitie) {
     throw unauthorizedError();
@@ -88,9 +87,19 @@ async function subscribeInActivity(userId: number, activitieId: number) {
 
   await activitiesRepository.createSubscription(userId, activitieId);
 
-  const subscribedActivitie = await activitiesRepository.getActivitie(activitieId);
+  const subscribedActivity = await activitiesRepository.getActivitie(activitieId);
+
+  const activityObj = [{
+    id: subscribedActivity.id,
+    name: subscribedActivity.name,
+    capacity: subscribedActivity.capacity,
+    weekdayId: subscribedActivity.weekdayId,
+    placeId: subscribedActivity.placeId,
+    startsAt: subscribedActivity.startsAt,
+    endsAt: subscribedActivity.endsAt
+  }];
   
-  return subscribedActivitie;
+  return activityObj;
 }
 
 async function getPlaces() {
