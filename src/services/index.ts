@@ -3,4 +3,4 @@ export * from "./authentication-service";
 export * from "./events-service";
 export * from "./enrollments-service";
 export * from "./hotels-service";
-export * from "./register-activities-service";
+export * from "./activities-service";
