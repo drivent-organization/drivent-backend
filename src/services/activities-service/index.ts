@@ -2,7 +2,7 @@ import { unauthorizedError, cannotSelectActivitiesError, notFoundError, conflict
 import activitiesRepository from "@/repositories/activities-repository";
 import enrollmentRepository from "@/repositories/enrollment-repository";
 import ticketRepository from "@/repositories/ticket-repository";
-import { TicketStatus } from "@prisma/client";
+import { Activity, TicketStatus } from "@prisma/client";
 import { ActivityData } from "@/protocols";
 import dayjs from "dayjs";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
@@ -79,13 +79,7 @@ async function subscribeInActivity(userId: number, activityId: number) {
     throw unauthorizedError();
   }
 
-  const getUserActivities = await activitiesRepository.getUserActivitiesByUserId(userId);
-  const allActivities = getUserActivities.map((item) => item.Activity);
-  const activityEndTime = allActivities.find(({ endsAt }) => dayjs(endsAt).isSameOrAfter(dayjs(activity.startsAt)));
-  const sameDay = activity.weekdayId === activityEndTime?.weekdayId;
-  if (activityEndTime && sameDay) {
-    throw conflictError("Date or time conflict");
-  }
+  await checkConflictTime(userId, activity);
 
   await activitiesRepository.createSubscription(userId, activityId);
 
@@ -104,6 +98,16 @@ async function subscribeInActivity(userId: number, activityId: number) {
   ];
 
   return activityObj;
+}
+
+async function checkConflictTime(userId: number, activity: Activity) {
+  const subscriptions = await activitiesRepository.getUserSubscriptionsByUserId(userId);
+  const activities = subscriptions.map((subscription) => subscription.Activity);
+  const sameDayActivities = activities.filter((activity) => activity.weekdayId === activity.weekdayId);
+  const conflictTime = sameDayActivities.filter(({ startsAt }) => dayjs(activity.endsAt).isAfter(startsAt));
+  if (conflictTime.length !== 0) {
+    throw conflictError("Date or time conflict");
+  }
 }
 
 async function getPlaces() {
