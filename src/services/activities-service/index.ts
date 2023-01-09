@@ -5,12 +5,15 @@ import ticketRepository from "@/repositories/ticket-repository";
 import { TicketStatus } from "@prisma/client";
 import { ActivityData } from "@/protocols";
 import dayjs from "dayjs";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+dayjs.extend(isSameOrAfter);
 
 async function checkPayment(userId: number) {
   const enrollment = await enrollmentRepository.findWithAddressByUserId(userId);
   if (!enrollment) {
     throw unauthorizedError();
   }
+
   const ticket = await ticketRepository.findTicketByEnrollmentId(enrollment.id);
   if (!ticket || ticket.status === TicketStatus.RESERVED) {
     throw unauthorizedError();
@@ -60,45 +63,44 @@ function getActivitiesParams(activitiesData: ActivityData[]) {
   return activities;
 }
 
-async function subscribeInActivity(userId: number, activitieId: number) {
+async function subscribeInActivity(userId: number, activityId: number) {
   await checkPayment(userId);
 
-  const activitie = await activitiesRepository.getActivitie(activitieId);
-  if (!activitie) {
+  const activity = await activitiesRepository.getActivity(activityId);
+  if (!activity) {
     throw notFoundError();
   }
 
-  const subscriptionQTD = await activitiesRepository.getSubscriptionsQTD(activitieId);
-  const capacity = Number(activitie.capacity);
-  if (subscriptionQTD.length + 1 >= capacity) {
+  const subscriptionQTD = await activitiesRepository.getSubscriptionsQTD(activityId);
+  const capacity = Number(activity.capacity);
+  if (subscriptionQTD.length >= capacity) {
     throw unauthorizedError();
   }
 
   const getUserActivities = await activitiesRepository.getUserActivitiesByUserId(userId);
   const allActivities = getUserActivities.map((item) => item.Activity);
 
-  const endTimeActivitie = allActivities.find(
-    ({ endsAt }) => dayjs(endsAt).isAfter(dayjs(activitie.startsAt)) || 
-    dayjs(endsAt).isSame(dayjs(activitie.startsAt)));
- 
-  if (endTimeActivitie) {
+  const activityEndTime = allActivities.find(({ endsAt }) => dayjs(endsAt).isSameOrAfter(dayjs(activity.startsAt)));
+  if (activityEndTime) {
     throw unauthorizedError();
   }
 
-  await activitiesRepository.createSubscription(userId, activitieId);
+  await activitiesRepository.createSubscription(userId, activityId);
 
-  const subscribedActivity = await activitiesRepository.getActivitie(activitieId);
+  const subscribedActivity = await activitiesRepository.getActivity(activityId);
 
-  const activityObj = [{
-    id: subscribedActivity.id,
-    name: subscribedActivity.name,
-    capacity: subscribedActivity.capacity,
-    weekdayId: subscribedActivity.weekdayId,
-    placeId: subscribedActivity.placeId,
-    startsAt: subscribedActivity.startsAt,
-    endsAt: subscribedActivity.endsAt
-  }];
-  
+  const activityObj = [
+    {
+      id: subscribedActivity.id,
+      name: subscribedActivity.name,
+      capacity: subscribedActivity.capacity,
+      weekdayId: subscribedActivity.weekdayId,
+      placeId: subscribedActivity.placeId,
+      startsAt: subscribedActivity.startsAt,
+      endsAt: subscribedActivity.endsAt,
+    },
+  ];
+
   return activityObj;
 }
 
@@ -115,8 +117,7 @@ const activitiesService = {
   getActivitiesDates,
   getActivitiesByDate,
   subscribeInActivity,
-  getPlaces
-
+  getPlaces,
 };
 
 export default activitiesService;
