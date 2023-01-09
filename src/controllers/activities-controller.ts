@@ -21,13 +21,14 @@ export async function listActivitiesDates(req: AuthenticatedRequest, res: Respon
 }
 
 export async function listActivitiesByDate(req: AuthenticatedRequest, res: Response) {
+  const { userId } = req;
   const dateId = Number(req.params.dateId);
   if (!dateId) {
     return res.sendStatus(httpStatus.BAD_REQUEST);
   }
 
   try {
-    const activities = await activitiesService.getActivitiesByDate(dateId);
+    const activities = await activitiesService.getActivitiesByDate(dateId, userId);
     return res.status(httpStatus.OK).send(activities);
   } catch (error) {
     return res.sendStatus(httpStatus.NOT_FOUND);

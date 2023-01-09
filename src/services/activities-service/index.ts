@@ -1,4 +1,4 @@
-import { unauthorizedError, cannotSelectActivitiesError, notFoundError } from "@/errors";
+import { unauthorizedError, cannotSelectActivitiesError, notFoundError, conflictError } from "@/errors";
 import activitiesRepository from "@/repositories/activities-repository";
 import enrollmentRepository from "@/repositories/enrollment-repository";
 import ticketRepository from "@/repositories/ticket-repository";
@@ -33,19 +33,20 @@ async function getActivitiesDates(userId: number) {
   return dates;
 }
 
-async function getActivitiesByDate(dateId: number) {
+async function getActivitiesByDate(dateId: number, userId: number) {
   const activitiesData = await activitiesRepository.findActivitiesByDate(dateId);
   if (activitiesData.length === 0) {
     throw notFoundError();
   }
 
-  const activities = getActivitiesParams(activitiesData);
+  const activities = getActivitiesParams(activitiesData, userId);
 
   return activities;
 }
 
-function getActivitiesParams(activitiesData: ActivityData[]) {
+function getActivitiesParams(activitiesData: ActivityData[], user_id: number) {
   const activities = activitiesData.map((activity) => {
+    const subscribed = activity.Subscription.find(({ userId }) => Number(userId) === user_id);
     const vacancies = activity.capacity - activity.Subscription.length;
     const activityParams = {
       id: activity.id,
@@ -57,6 +58,7 @@ function getActivitiesParams(activitiesData: ActivityData[]) {
       placeName: activity.Place.name,
       startsAt: activity.startsAt,
       endsAt: activity.endsAt,
+      subscribed: subscribed ? true : false,
     };
     return activityParams;
   });
@@ -79,10 +81,11 @@ async function subscribeInActivity(userId: number, activityId: number) {
 
   const getUserActivities = await activitiesRepository.getUserActivitiesByUserId(userId);
   const allActivities = getUserActivities.map((item) => item.Activity);
-
   const activityEndTime = allActivities.find(({ endsAt }) => dayjs(endsAt).isSameOrAfter(dayjs(activity.startsAt)));
-  if (activityEndTime) {
-    throw unauthorizedError();
+
+  const sameDay = activity.weekdayId === activityEndTime?.weekdayId;
+  if (activityEndTime && sameDay) {
+    throw conflictError("Date or time conflict");
   }
 
   await activitiesRepository.createSubscription(userId, activityId);
