@@ -31,12 +31,13 @@ export async function createPlace() {
 export async function createActivity({ dateId, placeId }: CreateActivityParams) {
   return prisma.activity.create({
     data: {
-      name: faker.name.findName(),
+      id: 1,
+      name: "Aula de montar PC com watercooler custom",
       capacity: 1,
       weekdayId: dateId,
       placeId: placeId,
-      startsAt: faker.date.soon(),
-      endsAt: faker.date.soon(),
+      startsAt: new Date("2023/01/10 09:00:00"),
+      endsAt: new Date("2023/01/10 11:00:00")
     },
   });
 }
@@ -47,5 +48,19 @@ export async function createSubscription({ activityId, userId }: CreateSubscript
       activityId,
       userId,
     },
+  });
+}
+
+export async function createActivityWithConflictantTime({ dateId, placeId }: CreateActivityParams) {
+  return prisma.activity.create({
+    data: {
+      id: 2,
+      name: "Aula de montar PC com watercooler custom",
+      capacity: 1,
+      weekdayId: dateId,
+      placeId: placeId,
+      startsAt: new Date("2023/01/10 10:00:00"),
+      endsAt: new Date("2023/01/10 12:00:00")
+    }
   });
 }

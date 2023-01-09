@@ -4,6 +4,7 @@ import enrollmentRepository from "@/repositories/enrollment-repository";
 import ticketRepository from "@/repositories/ticket-repository";
 import { TicketStatus } from "@prisma/client";
 import { ActivityData } from "@/protocols";
+import dayjs from "dayjs";
 
 async function checkPayment(userId: number) {
   const enrollment = await enrollmentRepository.findWithAddressByUserId(userId);
@@ -60,9 +61,43 @@ function getActivitiesParams(activitiesData: ActivityData[]) {
   return activities;
 }
 
+async function subscribeInActivity(userId: number, activitieId: number) {
+  await checkPayment(userId);
+
+  const activitie = await activitiesRepository.getActivitie(activitieId);
+  if (!activitie) {
+    throw notFoundError();
+  }
+
+  const subscriptionQTD = await activitiesRepository.getSubscriptionsQTD(activitieId);
+  const capacity = Number(activitie.capacity);
+  if (subscriptionQTD.length + 1 >= capacity) {
+    throw unauthorizedError();
+  }
+
+  const getUserActivities = await activitiesRepository.getUserActivitiesByUserId(userId);
+  const allActivities = getUserActivities.map((item) => item.Activity);
+  // const endTimeActivitie = allActivities.find(
+  //   ({ endsAt }) => Date.parse(endsAt.toISOString()) > Date.parse(activitie.startsAt.toISOString()),
+  // );
+  const endTimeActivitie = allActivities.find(
+    ({ endsAt }) => dayjs(endsAt).isAfter(dayjs(activitie.startsAt)) || dayjs(endsAt).isSame(dayjs(activitie.startsAt)));
+ 
+  if (!endTimeActivitie) {
+    throw unauthorizedError();
+  }
+
+  await activitiesRepository.createSubscription(userId, activitieId);
+
+  const subscribedActivitie = await activitiesRepository.getActivitie(activitieId);
+  
+  return subscribedActivitie;
+}
+
 const activitiesService = {
   getActivitiesDates,
   getActivitiesByDate,
+  subscribeInActivity
 };
 
 export default activitiesService;

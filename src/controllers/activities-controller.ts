@@ -31,3 +31,35 @@ export async function listActivitiesByDate(req: AuthenticatedRequest, res: Respo
     return res.sendStatus(httpStatus.NOT_FOUND);
   }
 }
+
+export async function subscribeToActivity(req: AuthenticatedRequest, res: Response) {
+  try {
+    const { userId } = req;
+    const { activityId } = req.body;
+   
+    if (!activityId) {
+      return res.sendStatus(httpStatus.BAD_REQUEST);
+    }
+
+    const subscribedActivity = await activitiesService.subscribeInActivity(userId, activityId);
+    console.log(subscribedActivity);
+    const atividadeCadastrada = [{
+      id: subscribedActivity.id,
+      name: subscribedActivity.name,
+      capacity: subscribedActivity.capacity,
+      weekdayId: subscribedActivity.weekdayId,
+      placeId: subscribedActivity.placeId,
+      startsAt: subscribedActivity.startsAt,
+      endsAt: subscribedActivity.endsAt
+    }];
+    return res.status(httpStatus.OK).send(atividadeCadastrada);
+  } catch (error) {
+    if (error.name === "NotFoundError") {
+      return res.sendStatus(httpStatus.NOT_FOUND);
+    }
+    if (error.name === "ConflictError") {
+      return res.sendStatus(httpStatus.CONFLICT);
+    }
+    return res.sendStatus(httpStatus.UNAUTHORIZED);
+  }
+}

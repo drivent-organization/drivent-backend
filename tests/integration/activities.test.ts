@@ -21,6 +21,7 @@ import {
   createPlace,
   createActivity,
   createSubscription,
+  createActivityWithConflictantTime
 } from "../factories";
 import { cleanDb, generateValidToken } from "../helpers";
 
@@ -197,6 +198,217 @@ describe("GET /activities/:dateId", () => {
           endsAt: activity.endsAt.toISOString(),
         },
       ]);
+    });
+  });
+});
+
+describe("POST /activities/process", () => {
+  it("should respond with status 401 if no token is given", async () => {
+    const response = await server.get("/activities/process");
+
+    expect(response.status).toBe(httpStatus.UNAUTHORIZED);
+  });
+
+  it("should respond with status 401 if given token is not valid", async () => {
+    const token = faker.lorem.word();
+
+    const response = await server.get("/activities/process").set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(httpStatus.UNAUTHORIZED);
+  });
+
+  it("should respond with status 401 if there is no session for given token", async () => {
+    const userWithoutSession = await createUser();
+    const token = jwt.sign({ userId: userWithoutSession.id }, process.env.JWT_SECRET);
+
+    const response = await server.get("/activities/process").set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(httpStatus.UNAUTHORIZED);
+  });
+
+  describe("when token is valid", () => {
+    it("should respond with status 400 when user has not a enrollment ", async () => {
+      const user = await createUser();
+      const token = await generateValidToken(user);
+
+      const response = await server
+        .post("/activities/process")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ activityId: 0 });
+
+      expect(response.status).toEqual(httpStatus.BAD_REQUEST);
+    });
+
+    it("should respond with status 400 if there is no activityId ", async () => {
+      const user = await createUser();
+      const token = await generateValidToken(user);
+      const enrollment = await createEnrollmentWithAddress(user);
+      const ticketType = await createTicketTypeWithHotel();
+      const ticket = await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
+      await createPayment(ticket.id, ticketType.price);
+      const hotel = await createHotel();
+      await createRoomWithHotelId(hotel.id);
+      const weekday = await createWeekday();
+      const place = await createPlace();
+      const activity = await createActivity({ dateId: weekday.id, placeId: place.id });
+      await createSubscription({ userId: user.id, activityId: activity.id });
+
+      const response = await server.post("/activities/process").set("Authorization", `Bearer ${token}`).send({});
+
+      expect(response.status).toEqual(httpStatus.BAD_REQUEST);
+    });
+
+    it("should respond with status 401 when user does not have a ticket yet", async () => {
+      const user = await createUser();
+      const token = await generateValidToken(user);
+      await createEnrollmentWithAddress(user);
+
+      const response = await server
+        .post("/activities/process")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ activityId: 1 });
+
+      expect(response.status).toEqual(httpStatus.UNAUTHORIZED);
+    });
+
+    it("should respond with status 401 when user ticket is remote ", async () => {
+      const user = await createUser();
+      const token = await generateValidToken(user);
+      const enrollment = await createEnrollmentWithAddress(user);
+      const ticketType = await createTicketTypeRemote();
+      const ticket = await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
+      await createPayment(ticket.id, ticketType.price);
+
+      const response = await server
+        .post("/activities/process")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ activityId: 1 });
+
+      expect(response.status).toEqual(httpStatus.UNAUTHORIZED);
+    });
+
+    it("should respond with status 401 when user has ticket not paid yet", async () => {
+      const user = await createUser();
+      const token = await generateValidToken(user);
+      const enrollment = await createEnrollmentWithAddress(user);
+      const ticketType = await createTicketTypeWithHotel();
+      await createTicket(enrollment.id, ticketType.id, TicketStatus.RESERVED);
+
+      const response = await server
+        .post("/activities/process")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ activityId: 1 });
+
+      expect(response.status).toEqual(httpStatus.UNAUTHORIZED);
+    });
+
+    it("should respond with status 404 for invalid activity id", async () => {
+      const user = await createUser();
+      const token = await generateValidToken(user);
+      const enrollment = await createEnrollmentWithAddress(user);
+      const ticketType = await createTicketTypeWithHotel();
+      const ticket = await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
+      await createPayment(ticket.id, ticketType.price);
+
+      const hotel = await createHotel();
+      await createRoomWithHotelId(hotel.id);
+
+      await createWeekday();
+      await createPlace();
+
+      const response = await server
+        .post("/activities/process")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ activityId: 1 });
+
+      expect(response.status).toEqual(httpStatus.NOT_FOUND);
+    });
+
+    it("should respond with status 401 when there are no more activity capacity", async () => {
+      const user = await createUser();
+      const user2 = await createUser();
+      const token = await generateValidToken(user);
+      const enrollment = await createEnrollmentWithAddress(user);
+      const ticketType = await createTicketTypeWithHotel();
+      await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
+      const hotel = await createHotel();
+      await createRoomWithHotelId(hotel.id);
+      const weekday = await createWeekday();
+      const place = await createPlace();
+      const activity = await createActivity({ dateId: weekday.id, placeId: place.id });
+      await createSubscription({ userId: user.id, activityId: activity.id });
+      await createSubscription({ userId: user2.id, activityId: activity.id });
+
+      const response = await server
+        .post("/activities/process")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ activityId: activity.id });
+
+      expect(response.status).toBe(httpStatus.UNAUTHORIZED);
+    });
+
+    it("should respond with status 401 when there are conflict in activity times", async () => {
+      const user = await createUser();
+      const token = await generateValidToken(user);
+      const enrollment = await createEnrollmentWithAddress(user);
+      const ticketType = await createTicketTypeWithHotel();
+      await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
+      const hotel = await createHotel();
+      await createRoomWithHotelId(hotel.id);
+      const weekday = await createWeekday();
+      const place = await createPlace();
+
+      const activity = await createActivity({ dateId: weekday.id, placeId: place.id });
+      await createSubscription({ userId: user.id, activityId: activity.id });
+
+      const conflictantActivity = await createActivityWithConflictantTime({ dateId: weekday.id, placeId: place.id });
+      await createSubscription({ userId: user.id, activityId: conflictantActivity.id });
+
+      const response = await server
+        .post("/activities/process")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ activityId: conflictantActivity.id });
+
+      const beforeCount = await prisma.subscription.count();
+
+      expect(response.status).toBe(httpStatus.UNAUTHORIZED);
+      expect(beforeCount).toEqual(1);
+    });
+
+    it("should respond with status 200 and insert a new subscription in the database", async () => {
+      const user = await createUser();
+      const token = await generateValidToken(user);
+      const enrollment = await createEnrollmentWithAddress(user);
+      const ticketType = await createTicketTypeWithHotel();
+      await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
+      
+      const weekday = await createWeekday();
+      const place = await createPlace();
+      const activity = await createActivity({ dateId: weekday.id, placeId: place.id });
+
+      const beforeCount = await prisma.subscription.count();
+
+      await createSubscription({ userId: user.id, activityId: activity.id });
+
+      const afterCount = await prisma.subscription.count();
+
+      const response = await server
+        .post("/activities/process")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ activityId: activity.id });
+
+      expect(response.status).toBe(httpStatus.OK);
+      expect(response.body).toEqual([{
+        id: activity.id,
+        name: activity.name,
+        capacity: activity.capacity,
+        weekdayId: activity.weekdayId,
+        placeId: activity.placeId,
+        startsAt: activity.startsAt,
+        endsAt: activity.endsAt
+      }]);
+      expect(beforeCount).toEqual(0);
+      expect(afterCount).toEqual(1);
     });
   });
 });
