@@ -12,12 +12,11 @@ async function checkPayment(userId: number) {
     throw unauthorizedError();
   }
   const ticket = await ticketRepository.findTicketByEnrollmentId(enrollment.id);
-
   if (!ticket || ticket.status === TicketStatus.RESERVED) {
     throw unauthorizedError();
   }
 
-  if (ticket.TicketType.isRemote || !ticket.TicketType.includesHotel) {
+  if (ticket.TicketType.isRemote) {
     throw cannotSelectActivitiesError();
   }
 }
@@ -94,10 +93,21 @@ async function subscribeInActivity(userId: number, activitieId: number) {
   return subscribedActivitie;
 }
 
+async function getPlaces() {
+  const places = await activitiesRepository.findPlaces();
+  if (places.length === 0) {
+    throw notFoundError();
+  }
+
+  return places;
+}
+
 const activitiesService = {
   getActivitiesDates,
   getActivitiesByDate,
-  subscribeInActivity
+  subscribeInActivity,
+  getPlaces
+
 };
 
 export default activitiesService;
