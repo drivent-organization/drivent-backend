@@ -1,6 +1,7 @@
 import { prisma } from "@/config";
 import { Place, Weekday } from "@prisma/client";
 import { ActivityData } from "@/protocols";
+import { unauthorizedError } from "@/errors";
 
 async function findActivitiesDates(): Promise<Weekday[]> {
   return prisma.weekday.findMany({});
@@ -30,12 +31,19 @@ async function getActivity(activityId: number) {
 }
 
 async function createSubscription(userId: number, activityId: number) {
-  return prisma.subscription.create({
+  const subscription = prisma.subscription.create({
     data: {
       userId,
       activityId,
     },
   });
+
+  try {
+    await prisma.$transaction([subscription]);
+    return subscription;
+  } catch (err) {
+    throw unauthorizedError();
+  }
 }
 
 async function getSubscriptionsQTD(activityId: number) {
