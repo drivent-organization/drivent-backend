@@ -46,7 +46,7 @@ async function getSubscriptionsQTD(activityId: number) {
   });
 }
 
-async function getUserActivitiesByUserId(userId: number) {
+async function getUserSubscriptionsByUserId(userId: number) {
   return prisma.subscription.findMany({
     where: {
       userId,
@@ -67,7 +67,7 @@ const activitiesRepository = {
   getActivity,
   createSubscription,
   getSubscriptionsQTD,
-  getUserActivitiesByUserId,
+  getUserSubscriptionsByUserId,
   findPlaces,
 };
 
