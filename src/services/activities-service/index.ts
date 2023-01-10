@@ -104,7 +104,9 @@ async function checkConflictTime(userId: number, activity: Activity) {
   const subscriptions = await activitiesRepository.getUserSubscriptionsByUserId(userId);
   const activities = subscriptions.map((subscription) => subscription.Activity);
   const sameDayActivities = activities.filter(({ weekdayId }) => weekdayId === activity.weekdayId);
-  const conflictTime = sameDayActivities.filter(({ startsAt }) => dayjs(activity.endsAt).isAfter(startsAt));
+  const conflictTime = sameDayActivities.filter(
+    ({ startsAt, endsAt }) => dayjs(activity.endsAt).isAfter(startsAt) && dayjs(activity.startsAt).isBefore(endsAt),
+  );
   if (conflictTime.length !== 0) {
     throw conflictError("Date or time conflict");
   }
