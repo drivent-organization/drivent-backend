@@ -42,6 +42,8 @@ async function createTicket(userId: number, ticketTypeId: number) {
     status: TicketStatus.RESERVED,
   };
 
+  //TRANSACTION AQUI
+
   await ticketRepository.createTicket(ticketData);
 
   const ticket = await ticketRepository.findTicketByEnrollmentId(enrollment.id);

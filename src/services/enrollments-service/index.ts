@@ -13,20 +13,14 @@ async function getAddressFromCEP(cep: string): Promise<AddressEnrollment> {
     throw notFoundError(); //lançar -> pro arquivo que chamou essa função
   }
 
-  const {
-    bairro,
-    localidade,
-    uf,
-    complemento,
-    logradouro
-  } = result;
+  const { bairro, localidade, uf, complemento, logradouro } = result;
 
   const address = {
     bairro,
     cidade: localidade,
     uf,
     complemento,
-    logradouro
+    logradouro,
   };
 
   return address;
@@ -67,6 +61,7 @@ async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollm
     throw notFoundError();
   }
 
+  //TRANSACTION AQUI
   const newEnrollment = await enrollmentRepository.upsert(params.userId, enrollment, exclude(enrollment, "userId"));
 
   await addressRepository.upsert(newEnrollment.id, address, address);
@@ -86,7 +81,7 @@ export type CreateOrUpdateEnrollmentWithAddress = CreateEnrollmentParams & {
 const enrollmentsService = {
   getOneWithAddressByUserId,
   createOrUpdateEnrollmentWithAddress,
-  getAddressFromCEP
+  getAddressFromCEP,
 };
 
 export default enrollmentsService;
