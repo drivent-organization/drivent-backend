@@ -31,19 +31,12 @@ async function getActivity(activityId: number) {
 }
 
 async function createSubscription(userId: number, activityId: number) {
-  const subscription = prisma.subscription.create({
+  return prisma.subscription.create({
     data: {
       userId,
       activityId,
     },
   });
-
-  try {
-    await prisma.$transaction([subscription]);
-    return subscription;
-  } catch (err) {
-    throw unauthorizedError();
-  }
 }
 
 async function getSubscriptionsQTD(activityId: number) {

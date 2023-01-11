@@ -15,7 +15,7 @@ type BookingWithRoom = Booking & {
 };
 
 async function create({ roomId, userId }: CreateParams): Promise<BookingData> {
-  const createBooking = prisma.booking.create({
+  return prisma.booking.create({
     data: {
       roomId,
       userId,
@@ -29,13 +29,6 @@ async function create({ roomId, userId }: CreateParams): Promise<BookingData> {
       },
     },
   });
-
-  try {
-    await prisma.$transaction([createBooking]);
-    return createBooking;
-  } catch (err) {
-    throw cannotBookingError();
-  }
 }
 
 async function findByRoomId(roomId: number): Promise<BookingWithRoom[]> {
@@ -66,7 +59,7 @@ async function findByUserId(userId: number): Promise<BookingData> {
 }
 
 async function upsertBooking({ id, roomId }: UpdateParams): Promise<BookingData> {
-  const upsert = prisma.booking.update({
+  return prisma.booking.update({
     where: {
       id,
     },
@@ -82,13 +75,6 @@ async function upsertBooking({ id, roomId }: UpdateParams): Promise<BookingData>
       },
     },
   });
-
-  try {
-    await prisma.$transaction([upsert]);
-    return upsert;
-  } catch (err) {
-    throw cannotBookingError();
-  }
 }
 
 const bookingRepository = {
