@@ -21,7 +21,7 @@ import {
   createPlace,
   createActivity,
   createSubscription,
-  createActivityWithConflictantTime
+  createActivityWithConflictantTime,
 } from "../factories";
 import { cleanDb, generateValidToken } from "../helpers";
 
@@ -194,6 +194,7 @@ describe("GET /activities/:dateId", () => {
           dateId: activity.weekdayId,
           placeId: activity.placeId,
           placeName: place.name,
+          subscribed: true,
           startsAt: activity.startsAt.toISOString(),
           endsAt: activity.endsAt.toISOString(),
         },
@@ -384,7 +385,7 @@ describe("POST /activities/process", () => {
       const enrollment = await createEnrollmentWithAddress(user);
       const ticketType = await createTicketTypeWithHotel();
       await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
-      
+
       const weekday = await createWeekday();
       const place = await createPlace();
       const activity = await createActivity({ dateId: weekday.id, placeId: place.id });
@@ -396,15 +397,17 @@ describe("POST /activities/process", () => {
         .send({ activityId: activity.id });
 
       expect(response.status).toBe(httpStatus.OK);
-      expect(response.body).toEqual([{
-        id: activity.id,
-        name: activity.name,
-        capacity: activity.capacity,
-        weekdayId: activity.weekdayId,
-        placeId: activity.placeId,
-        startsAt: activity.startsAt,
-        endsAt: activity.endsAt
-      }]);
+      expect(response.body).toEqual([
+        {
+          id: activity.id,
+          name: activity.name,
+          capacity: activity.capacity,
+          weekdayId: activity.weekdayId,
+          placeId: activity.placeId,
+          startsAt: activity.startsAt,
+          endsAt: activity.endsAt,
+        },
+      ]);
     });
   });
 });
