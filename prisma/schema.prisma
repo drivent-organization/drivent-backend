@@ -43,7 +43,7 @@ model Event {
 }
 
 model Enrollment {
-  id        String    @id @default(uuid())
+  id        Int       @id @default(autoincrement())
   name      String    @db.VarChar(255)
   cpf       String    @db.VarChar(255)
   birthday  DateTime
@@ -57,7 +57,7 @@ model Enrollment {
 }
 
 model Address {
-  id            String       @id @default(uuid())
+  id            Int        @id @default(autoincrement())
   cep           String     @db.VarChar(255)
   street        String     @db.VarChar(255)
   city          String     @db.VarChar(255)
@@ -65,7 +65,7 @@ model Address {
   number        String     @db.VarChar(255)
   neighborhood  String     @db.VarChar(255)
   addressDetail String?    @db.VarChar(255)
-  enrollmentId  String       @unique
+  enrollmentId  Int        @unique
   Enrollment    Enrollment @relation(fields: [enrollmentId], references: [id])
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
