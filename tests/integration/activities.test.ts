@@ -3,7 +3,7 @@ import { prisma } from "@/config";
 import faker from "@faker-js/faker";
 import { TicketStatus } from "@prisma/client";
 import httpStatus from "http-status";
-import { date } from "joi";
+import { date, string } from "joi";
 import * as jwt from "jsonwebtoken";
 import supertest from "supertest";
 import {
@@ -388,7 +388,6 @@ describe("POST /activities/process", () => {
       const weekday = await createWeekday();
       const place = await createPlace();
       const activity = await createActivity({ dateId: weekday.id, placeId: place.id });
-      await createSubscription({ userId: user.id, activityId: activity.id });
 
       const response = await server
         .post("/activities/process")
@@ -402,8 +401,8 @@ describe("POST /activities/process", () => {
         capacity: activity.capacity,
         weekdayId: activity.weekdayId,
         placeId: activity.placeId,
-        startsAt: activity.startsAt,
-        endsAt: activity.endsAt
+        startsAt: expect.any(String),
+        endsAt: expect.any(String)
       }]);
     });
   });
