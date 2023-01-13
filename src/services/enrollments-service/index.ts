@@ -59,14 +59,12 @@ async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollm
     throw notFoundError();
   }
 
-  const isEnrollmentExists = await enrollmentRepository.findWithAddressByUserId(params.userId);
   await enrollmentRepository.upsertEnrollmentAddress(
     params.userId,
     enrollment,
     exclude(enrollment, "userId"),
     address,
     address,
-    isEnrollmentExists.id,
   );
 }
 
