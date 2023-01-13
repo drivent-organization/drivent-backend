@@ -1,5 +1,4 @@
 import faker from "@faker-js/faker";
-import { Weekday } from "@prisma/client";
 import { prisma } from "@/config";
 
 type CreateActivityParams = {
@@ -32,7 +31,7 @@ export async function createActivity({ dateId, placeId }: CreateActivityParams) 
   return prisma.activity.create({
     data: {
       id: 1,
-      name: "Aula de montar PC com watercooler custom",
+      name: "Aula de montar PC com custom watercooler",
       capacity: 1,
       weekdayId: dateId,
       placeId: placeId,
@@ -55,7 +54,7 @@ export async function createActivityWithConflictantTime({ dateId, placeId }: Cre
   return prisma.activity.create({
     data: {
       id: 2,
-      name: "Aula de montar PC com watercooler custom",
+      name: "Aula de montar PC com custom watercooler",
       capacity: 1,
       weekdayId: dateId,
       placeId: placeId,

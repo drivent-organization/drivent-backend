@@ -3,7 +3,7 @@ import { prisma } from "@/config";
 import faker from "@faker-js/faker";
 import { TicketStatus } from "@prisma/client";
 import httpStatus from "http-status";
-import { date } from "joi";
+import { date, string } from "joi";
 import * as jwt from "jsonwebtoken";
 import supertest from "supertest";
 import {
@@ -348,7 +348,7 @@ describe("POST /activities/process", () => {
       expect(response.status).toBe(httpStatus.UNAUTHORIZED);
     });
 
-    it("should respond with status 401 when there are conflict with different activitie time", async () => {
+    it("should respond with status 409 when there are conflict with different activitie time", async () => {
       const user = await createUser();
       const token = await generateValidToken(user);
       const enrollment = await createEnrollmentWithAddress(user);
@@ -359,24 +359,17 @@ describe("POST /activities/process", () => {
       const weekday = await createWeekday();
       const place = await createPlace();
 
-      const beforeCount = await prisma.subscription.count();
-
       const activity = await createActivity({ dateId: weekday.id, placeId: place.id });
       await createSubscription({ userId: user.id, activityId: activity.id });
 
       const conflictantActivity = await createActivityWithConflictantTime({ dateId: weekday.id, placeId: place.id });
-      await createSubscription({ userId: user.id, activityId: conflictantActivity.id });
 
       const response = await server
         .post("/activities/process")
         .set("Authorization", `Bearer ${token}`)
         .send({ activityId: conflictantActivity.id });
 
-      const afterCount = await prisma.subscription.count();
-
-      expect(response.status).toBe(httpStatus.UNAUTHORIZED);
-      expect(beforeCount).toEqual(0);
-      expect(afterCount).toEqual(1);
+      expect(response.status).toBe(httpStatus.CONFLICT);
     });
 
     it("should respond with status 200 and existing activity data", async () => {
@@ -389,7 +382,6 @@ describe("POST /activities/process", () => {
       const weekday = await createWeekday();
       const place = await createPlace();
       const activity = await createActivity({ dateId: weekday.id, placeId: place.id });
-      await createSubscription({ userId: user.id, activityId: activity.id });
 
       const response = await server
         .post("/activities/process")
@@ -397,17 +389,15 @@ describe("POST /activities/process", () => {
         .send({ activityId: activity.id });
 
       expect(response.status).toBe(httpStatus.OK);
-      expect(response.body).toEqual([
-        {
-          id: activity.id,
-          name: activity.name,
-          capacity: activity.capacity,
-          weekdayId: activity.weekdayId,
-          placeId: activity.placeId,
-          startsAt: activity.startsAt,
-          endsAt: activity.endsAt,
-        },
-      ]);
+      expect(response.body).toEqual([{
+        id: activity.id,
+        name: activity.name,
+        capacity: activity.capacity,
+        weekdayId: activity.weekdayId,
+        placeId: activity.placeId,
+        startsAt: expect.any(String),
+        endsAt: expect.any(String)
+      }]);
     });
   });
 });

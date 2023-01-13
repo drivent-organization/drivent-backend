@@ -96,7 +96,6 @@ async function subscribeInActivity(userId: number, activityId: number) {
       endsAt: subscribedActivity.endsAt,
     },
   ];
-
   return activityObj;
 }
 
