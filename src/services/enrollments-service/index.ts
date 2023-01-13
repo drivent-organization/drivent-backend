@@ -1,8 +1,10 @@
 import { AddressEnrollment } from "@/protocols";
 import { getAddress } from "@/utils/cep-service";
 import { notFoundError } from "@/errors";
-import addressRepository, { CreateAddressParams } from "@/repositories/address-repository";
-import enrollmentRepository, { CreateEnrollmentParams } from "@/repositories/enrollment-repository";
+import enrollmentRepository, {
+  CreateEnrollmentParams,
+  CreateAddressParams,
+} from "@/repositories/enrollment-repository";
 import { exclude } from "@/utils/prisma-utils";
 import { Address, Enrollment } from "@prisma/client";
 
@@ -10,7 +12,7 @@ async function getAddressFromCEP(cep: string): Promise<AddressEnrollment> {
   const result = await getAddress(cep);
 
   if (!result) {
-    throw notFoundError(); //lançar -> pro arquivo que chamou essa função
+    throw notFoundError();
   }
 
   const { bairro, localidade, uf, complemento, logradouro } = result;
