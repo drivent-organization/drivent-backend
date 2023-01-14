@@ -4,7 +4,7 @@ import { Ticket, TicketStatus } from "@prisma/client";
 async function findTicketTypes() {
   return prisma.ticketType.findMany();
 }
-
+  
 async function findTickeyById(ticketId: number) {
   return prisma.ticket.findFirst({
     where: {
@@ -15,6 +15,7 @@ async function findTickeyById(ticketId: number) {
     },
   });
 }
+
 async function findTickeWithTypeById(ticketId: number) {
   return prisma.ticket.findFirst({
     where: {
@@ -45,17 +46,6 @@ async function createTicket(ticket: CreateTicketParams) {
   });
 }
 
-async function ticketProcessPayment(ticketId: number) {
-  return prisma.ticket.update({
-    where: {
-      id: ticketId,
-    },
-    data: {
-      status: TicketStatus.PAID,
-    },
-  });
-}
-
 export type CreateTicketParams = Omit<Ticket, "id" | "createdAt" | "updatedAt">;
 
 const ticketRepository = {
@@ -64,7 +54,7 @@ const ticketRepository = {
   createTicket,
   findTickeyById,
   findTickeWithTypeById,
-  ticketProcessPayment,
+  
 };
 
 export default ticketRepository;
