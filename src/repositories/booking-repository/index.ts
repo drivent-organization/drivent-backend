@@ -1,5 +1,6 @@
 import { prisma } from "@/config";
 import { Booking, Hotel, Room } from "@prisma/client";
+import { cannotBookingError } from "@/errors";
 
 type CreateParams = Omit<Booking, "id" | "createdAt" | "updatedAt">;
 type UpdateParams = Omit<Booking, "userId" | "createdAt" | "updatedAt">;
