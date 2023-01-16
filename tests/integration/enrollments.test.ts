@@ -154,12 +154,14 @@ describe("POST /enrollments", () => {
 
       it("should respond with status 201 and create new enrollment if there is not any", async () => {
         const body = generateValidBody();
+       
         const token = await generateValidToken();
 
         const response = await server.post("/enrollments").set("Authorization", `Bearer ${token}`).send(body);
 
         expect(response.status).toBe(httpStatus.OK);
         const enrollment = await prisma.enrollment.findFirst({ where: { cpf: body.cpf } });
+        
         expect(enrollment).toBeDefined();
       });
 
