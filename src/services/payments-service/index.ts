@@ -45,10 +45,11 @@ async function paymentProcess(ticketId: number, userId: number, cardData: CardPa
   };
 
   const payment = await paymentRepository.createPayment(ticketId, paymentData);
+  if (!payment) throw conflictError("Payment could not be processed");
 
-  await ticketRepository.ticketProcessPayment(ticketId);
-
-  return payment;
+  const paymentSuccess = await paymentRepository.findPaymentByTicketId(ticketId);
+  
+  return paymentSuccess;
 }
 
 export type CardPaymentParams = {
