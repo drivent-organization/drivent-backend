@@ -6,6 +6,8 @@ import { Activity, TicketStatus } from "@prisma/client";
 import { ActivityData } from "@/protocols";
 import dayjs from "dayjs";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+import redisRepository from "@/repositories/redis-repository";
+
 dayjs.extend(isSameOrAfter);
 
 async function checkPayment(userId: number) {
@@ -34,11 +36,20 @@ async function getActivitiesDates(userId: number) {
 }
 
 async function getActivitiesByDate(dateId: number, userId: number) {
+  const activitiesKey = `activities_by_dateid_${dateId}`;
+  const getActivitiesFromRedis = await redisRepository.findActivitiesByDate(activitiesKey);
+  if (getActivitiesFromRedis) {
+    const activitiesFromRedis = getActivitiesParams(getActivitiesFromRedis, userId);
+
+    return activitiesFromRedis;
+  }
+
   const activitiesData = await activitiesRepository.findActivitiesByDate(dateId);
+
   if (activitiesData.length === 0) {
     throw notFoundError();
   }
-
+  await redisRepository.insertActivitiesByDate(activitiesKey, activitiesData);
   const activities = getActivitiesParams(activitiesData, userId);
 
   return activities;
@@ -83,19 +94,19 @@ async function subscribeInActivity(userId: number, activityId: number) {
 
   await activitiesRepository.createSubscription(userId, activityId);
 
-  const subscribedActivity = await activitiesRepository.getActivity(activityId);
-
   const activityObj = [
     {
-      id: subscribedActivity.id,
-      name: subscribedActivity.name,
-      capacity: subscribedActivity.capacity,
-      weekdayId: subscribedActivity.weekdayId,
-      placeId: subscribedActivity.placeId,
-      startsAt: subscribedActivity.startsAt,
-      endsAt: subscribedActivity.endsAt,
+      id: activity.id,
+      name: activity.name,
+      capacity: activity.capacity,
+      weekdayId: activity.weekdayId,
+      placeId: activity.placeId,
+      startsAt: activity.startsAt,
+      endsAt: activity.endsAt,
     },
   ];
+  const activitiesKey = `activities_by_dateid_${activity.weekdayId}`;
+  await redisRepository.deleteActivities(activitiesKey);
   return activityObj;
 }
 
