@@ -23,7 +23,7 @@
     "dev:migration:run": "npm run dev:load-envs prisma migrate deploy",
     "dev:migration:generate": "npm run dev:load-envs prisma migrate dev",
     "dev:seed": "npm run dev:load-envs prisma db seed",
-    "dev": "NODE_ENV=development nodemon --watch 'src/' --exec 'ts-node -r tsconfig-paths/register ./src/server.ts' -e ts"
+    "dev": "NODE_ENV=development nodemon --watch 'src/' --exec 'ts-node -r tsconfig-paths/register ./src/server.ts' -L -e ts"
   },
   "keywords": [
     "driven.t",
@@ -61,7 +61,7 @@
     "husky": "^8.0.1",
     "jest": "^26.6.3",
     "lint-staged": "^12.4.1",
-    "nodemon": "^2.0.16",
+    "nodemon": "^2.0.20",
     "prettier": "^2.6.2",
     "prisma": "^3.14.0",
     "supertest": "^6.2.3",
@@ -88,6 +88,7 @@
     "http-status": "^1.5.2",
     "joi": "^17.6.0",
     "jsonwebtoken": "^8.5.1",
+    "redis": "^4.5.1",
     "reflect-metadata": "^0.1.13",
     "uuid": "^9.0.0"
   }
