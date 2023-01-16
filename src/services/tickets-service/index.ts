@@ -5,7 +5,6 @@ import { TicketStatus } from "@prisma/client";
 
 async function getTicketTypes() {
   const ticketTypes = await ticketRepository.findTicketTypes();
-
   if (!ticketTypes) {
     throw notFoundError();
   }
