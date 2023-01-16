@@ -5,7 +5,7 @@ import { listActivitiesDates, listActivitiesByDate, subscribeToActivity, listPla
 const activitiesRouter = Router();
 
 activitiesRouter
-  .all("/*", authenticateToken)
+// .all("/*", authenticateToken)
   .get("/", listActivitiesDates)
   .get("/places", listPlaces)
   .get("/:dateId", listActivitiesByDate)

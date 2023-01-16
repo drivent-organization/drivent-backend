@@ -35,3 +35,15 @@ export type ActivityData = Activity & {
   Place: Place;
   Subscription: Subscription[];
 };
+
+export type ActivitiesParams = {
+  id: number;
+  activityName: string;
+  capacity: number;
+  dateId: number;
+  placeId: number;
+  placeName: string;
+  startsAt: Date;
+  endsAt: Date;
+  subscribed: boolean;
+}[];
