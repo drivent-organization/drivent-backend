@@ -24,13 +24,18 @@ import {
   createActivityWithConflictantTime,
 } from "../factories";
 import { cleanDb, generateValidToken } from "../helpers";
+import { initRedis } from "@/utils/redis-config";
 
 beforeAll(async () => {
   await init();
+  const redisClient = await initRedis();
+  await redisClient.flushAll();
 });
 
 beforeEach(async () => {
   await cleanDb();
+  const redisClient = await initRedis();
+  await redisClient.flushAll();
 });
 
 const server = supertest(app);
@@ -389,15 +394,17 @@ describe("POST /activities/process", () => {
         .send({ activityId: activity.id });
 
       expect(response.status).toBe(httpStatus.OK);
-      expect(response.body).toEqual([{
-        id: activity.id,
-        name: activity.name,
-        capacity: activity.capacity,
-        weekdayId: activity.weekdayId,
-        placeId: activity.placeId,
-        startsAt: expect.any(String),
-        endsAt: expect.any(String)
-      }]);
+      expect(response.body).toEqual([
+        {
+          id: activity.id,
+          name: activity.name,
+          capacity: activity.capacity,
+          weekdayId: activity.weekdayId,
+          placeId: activity.placeId,
+          startsAt: expect.any(String),
+          endsAt: expect.any(String),
+        },
+      ]);
     });
   });
 });

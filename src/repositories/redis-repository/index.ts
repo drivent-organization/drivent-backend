@@ -12,9 +12,15 @@ async function insertActivitiesByDate(activitiesKey: string, activitiesData: Act
   await redisClient.set(activitiesKey, JSON.stringify(activitiesData));
 }
 
+async function deleteActivities(activitiesKey: string) {
+  const redisClient = await initRedis();
+  await redisClient.del(activitiesKey);
+}
+
 const redisRepository = {
   findActivitiesByDate,
   insertActivitiesByDate,
+  deleteActivities,
 };
 
 export default redisRepository;

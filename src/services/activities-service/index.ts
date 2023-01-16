@@ -40,6 +40,7 @@ async function getActivitiesByDate(dateId: number, userId: number) {
   const getActivitiesFromRedis = await redisRepository.findActivitiesByDate(activitiesKey);
   if (getActivitiesFromRedis) {
     const activitiesFromRedis = getActivitiesParams(getActivitiesFromRedis, userId);
+
     return activitiesFromRedis;
   }
 
@@ -104,6 +105,8 @@ async function subscribeInActivity(userId: number, activityId: number) {
       endsAt: activity.endsAt,
     },
   ];
+  const activitiesKey = `activities_by_dateid_${activity.weekdayId}`;
+  await redisRepository.deleteActivities(activitiesKey);
   return activityObj;
 }
 
